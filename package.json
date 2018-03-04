@@ -1,0 +1,25 @@
+{
+  "name": "universal-turing-machine",
+  "version": "1.0.0",
+  "main": "dist/universal-turing-machine.cjs.js",
+  "module": "dist/universal-turing-machine.esm.js",
+  "browser": "dist/universal-turing-machine.umd.js",
+  "dependencies": {
+    "lodash": "^4.17.5"
+  },
+  "devDependencies": {
+    "ava": "^0.25.0",
+    "rollup": "^0.50.0",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-node-resolve": "^3.0.0"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "ava",
+    "pretest": "npm run build"
+  },
+  "files": [
+    "dist"
+  ]
+}
