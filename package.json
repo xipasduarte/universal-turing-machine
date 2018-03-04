@@ -1,6 +1,6 @@
 {
   "name": "universal-turing-machine",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "main": "dist/universal-turing-machine.cjs.js",
   "module": "dist/universal-turing-machine.esm.js",
   "browser": "dist/universal-turing-machine.umd.js",
