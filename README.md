@@ -48,18 +48,22 @@ qin 0 1 r qout
 
 The following is a list of the features that are in development.
 
-- [ ] Parse tape as from a string.
-- [ ] Parse transitions from string.
-- [ ] Allow for initial machine-state to be provided, not simply the default (the first transition's starting machine-state).
-- [ ] Step by step computation (forward).
+- [X] Parse tape as from a string.
+- [X] Parse transitions from string.
+- [X] Allow for initial machine-state to be provided, not simply the default (the first transition's starting machine-state).
+- [X] Step by step computation (forward).
 - [ ] Step by step computation (backwards).
-- [ ] Abort computation when there is no defined transition to perform.
+- [X] Abort computation when there is no defined transition to perform.
+- [X] Abort computation when when moving blow the first slot.
 - [ ] Handle terminal machine-states output.
 - [ ] Retrieve the machine properties:
-  - [ ] Tape contents
-  - [ ] Machine-state
-  - [ ] Head position
+  - [X] Tape contents
+  - [X] Machine-state
+  - [X] Head position
   - [ ] Transitions
+- [ ] Full test coverage.
+- [ ] Full code documentation.
+- [ ] Usage documentation.
 
 ### Future
 - [ ] Have more than one tape.
