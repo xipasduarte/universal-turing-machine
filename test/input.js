@@ -30,7 +30,7 @@ test('input-transitions', async t => {
 });
 
 test('input-state', async t => {
-  t.is(goodMachine.getMachineState(), 'qin', 'Initial machine state.');
+  t.is(goodMachine.getMachineState(), 'qin', 'Default initial machine state.');
 });
 
 test('input-initial-state', async t => {
@@ -40,5 +40,5 @@ test('input-initial-state', async t => {
     initialState: 'q1'
   });
 
-  t.is(machine.getMachineState(), 'q1', 'Set machine initial state');
+  t.is(machine.getMachineState(), 'q1', 'Set machine initial state.');
 });

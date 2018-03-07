@@ -123,7 +123,7 @@ export default class UniversalTuringMachine {
   isTerminalState(state) {
     const terminalStates = ['halt-accept', 'halt-reject', 'halt-abort']
     for (let i = 0; i < terminalStates.length; i++) {
-      if (state === terminalState[i]) {
+      if (state === terminalStates[i]) {
         return true;
       }
     }
@@ -150,17 +150,30 @@ export default class UniversalTuringMachine {
     }
   }
 
+  /**
+   * Compute the next machine state.
+   * @return {Object|boolean} False if the computation is in a terminal state
+   *                          (see isTerminalState()), otherwise an object with
+   *                          the transition information and current state.
+   */
   nextState() {
-    console.log(this.state.machineState);
+
+    // If the machine state is final, don't execute.
+    if (this.isTerminalState(this.getMachineState())) {
+      return false;
+    }
+
     const transition = this.getTransition();
-    console.log(transition);
+
     this.writeTape(transition.write);
     this.moveHead(transition.move);
     this.setMachineState(transition.end);
+
     return {
-      tape: this.state.tape,
+      tape: this.getTape(),
       head: this.state.head,
-      transition
+      isTerminalState: this.isTerminalState(this.getMachineState()),
+      transition,
     };
   }
 }
