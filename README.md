@@ -52,15 +52,17 @@ The following is a list of the features that are in development.
 - [X] Parse transitions from string.
 - [X] Allow for initial machine-state to be provided, not simply the default (the first transition's starting machine-state).
 - [X] Step by step computation (forward).
-- [ ] Step by step computation (backwards).
+- [X] Step by step computation (backwards).
+- [X] Full run.
 - [X] Abort computation when there is no defined transition to perform.
 - [X] Abort computation when when moving blow the first slot.
-- [ ] Handle terminal machine-states output.
-- [ ] Retrieve the machine properties:
+- [X] Handle terminal machine-states output.
+- [X] Retrieve the machine properties:
   - [X] Tape contents
   - [X] Machine-state
   - [X] Head position
-  - [ ] Transitions
+  - [X] Transitions
+- [ ] Extract tape and transition parsing.
 - [ ] Full test coverage.
 - [ ] Full code documentation.
 - [ ] Usage documentation.

@@ -3,31 +3,26 @@ import replace from 'lodash/replace';
 import split from 'lodash/split';
 import toLower from 'lodash/toLower';
 import trim from 'lodash/trim';
+import isEmpty from 'lodash/isEmpty';
 
 class UniversalTuringMachine {
   constructor({tape = '', transitions = '', initialState = ''}) {
     this.state = {
       tape: split(tape, ''),
-      transitions: this.parseTransitions(transitions),
       head: 0,
       isTerminal: false,
+      transitionHistory: [],
     };
-    this.setInitialMachineState();
-    initialState = initialState === '' ? this.state.transitions[0].start : initialState;
-    this.setMachineState(initialState);
-  }
 
-  /**
-   * Define intial state for machine.
-   * The default is the first transition start state.
-   */
-  setInitialMachineState() {
-    if (this.state.transitions.length > 0) {
-      this.state.initialMachine = {
-        state: this.state.transitions[0].start,
-        tape: this.state.tape,
-      };
-    }
+    this.transitions = this.parseTransitions(transitions);
+
+    initialState = initialState === '' ? this.transitions[0].start : initialState;
+    this.setMachineState(initialState);
+
+    this.initialState = {
+      tape: this.state.tape,
+      machineState: initialState,
+    };
   }
 
   /**
@@ -41,11 +36,30 @@ class UniversalTuringMachine {
   }
 
   /**
+   * Set the tape contents.
+   * Triggers a reset of the machine stat to initial conditions.
+   * @param {string} tape The new tape content.
+   */
+  setTape(tape) {
+    this.state.tape = split(tape, '');
+    this.state.transitionHistory = [];
+    this.state.isTerminal = false;
+    this.state.machineState = this.initialState.machineState;
+  }
+
+  /**
    * Write symbol to tape at the current position of the machine's head.
    * @param {string} symbol The symbol to write.
    */
   writeTape(symbol) {
     this.state.tape[this.state.head] = symbol;
+  }
+
+  /**
+   * @return {int} Head position.
+   */
+  getHeadPosition() {
+    return this.state.head;
   }
 
   /**
@@ -66,39 +80,55 @@ class UniversalTuringMachine {
    * @return {Array} An array with the transitions this machine handles.
    */
   getTransitions() {
-    return this.state.transitions;
+    return this.transitions;
   }
 
   /**
+   * @param {int} index The transition index on the transitions array.
    * @return {Object} The specific transition given the current state of the
    *                  machine and the symbol read from the tape.
    */
-  getTransition(reverse = false) {
+  getTransition(index = -1) {
+
+    // Return a specific transition.
+    if (index !== -1) {
+      return this.transitions[index];
+    }
 
     // Current symbol on the tape at the head's position.
     const symbol = this.readTape();
 
     // Search for transition.
-    for (let i = 0; i < this.state.transitions.length; i++) {
-      if (this.state.transitions[i].start === this.state.machineState) {
-        if (
-          !reverse && this.state.transitions[i].read === symbol ||
-          reverse && this.state.transitions[i].write === symbol
-        ) {
-          return this.state.transitions[i];
-        }
+    for (let i = 0; i < this.transitions.length; i++) {
+      if (
+        this.transitions[i].start === this.getMachineState() &&
+        this.transitions[i].read === symbol
+      ) {
+        return this.transitions[i];
       }
     }
 
     // No transition was found, abort computation.
-    this.abortComputation();
+    return this.abortComputation();
+  }
+
+  getTransitionHistory() {
+    return this.state.transitionHistory;
   }
 
   /**
    * @return {string} Symbol on the machine's tape at the head position.
    */
   readTape() {
-    return this.state.tape[this.state.head];
+    const tape = this.getTape();
+    const head = this.getHeadPosition();
+
+    if (head < tape.length) {
+      return this.getTape()[this.getHeadPosition()];
+    }
+
+    // Empty slot space.
+    return '_';
   }
 
   parseTransitions(transitionsString) {
@@ -132,21 +162,22 @@ class UniversalTuringMachine {
 
   /**
    * Abort computation.
-   * @throws error after changing the machine state.
+   * @return False to prevent further actions.
    */
   abortComputation() {
     this.setMachineState('halt-abort');
-    throw 'There is no transition defined for current state.';
+    return false;
   }
 
-  
-  moveHead(move, reverse = false) {
-    if (move === 'l' && !reverse || move === 'r' && reverse) {
+  /**
+   * Move the tape head to it's next position.
+   * @param {string} move The direction to move in the transition
+   */
+  moveHead(move) {
+    if (move === 'l') {
       this.state.head -= 1;
-    } else if (move === 'r' && !reverse || move === 'l' && reverse) {
+    } else if (move === 'r') {
       this.state.head += 1;
-    } else {
-      this.abortComputation();
     }
   }
 
@@ -160,21 +191,56 @@ class UniversalTuringMachine {
 
     // If the machine state is final, don't execute.
     if (this.isTerminalState(this.getMachineState())) {
-      return false;
+      return this.getMachineState();
     }
 
     const transition = this.getTransition();
 
+    if (!transition) {
+      return false;
+    }
+
     this.writeTape(transition.write);
     this.moveHead(transition.move);
     this.setMachineState(transition.end);
+    this.state.isTerminal = this.isTerminalState(this.getMachineState());
+    this.state.transitionHistory.push(this.getTransitions().indexOf(transition));
 
     return {
       tape: this.getTape(),
       head: this.state.head,
-      isTerminalState: this.isTerminalState(this.getMachineState()),
+      isTerminalState: this.state.isTerminal,
       transition,
     };
+  }
+
+  previousState() {
+    const history = this.getTransitionHistory();
+
+    // If the machine returns to the start, don't execute.
+    if (isEmpty(history)) {
+      return false;
+    }
+
+    const transition = this.getTransition(history.pop());
+    this.moveHead(transition.move === 'r' ? 'l' : 'r');
+    this.writeTape(transition.read);
+    this.setMachineState(transition.start);
+    this.state.isTerminal = false;
+
+    return {
+      tape: this.getTape(),
+      head: this.state.head,
+      isTerminalState: this.state.isTerminal,
+    };
+  }
+
+  run() {
+    while (!this.isTerminalState(this.getMachineState())) {
+      this.nextState();
+    }
+
+    return this.getMachineState();
   }
 }
 

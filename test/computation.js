@@ -1,12 +1,12 @@
 import test from 'ava';
 import UniversalTuringMachine from '..'
 
-test('next-step-accept', async t => {
-  const machine = new UniversalTuringMachine({
-    tape: '01',
-    transitions: 'qin 0 0 R q1\nqin 1 1 R qin\nq1 1 1 R halt-accept',
-  });
+const machine = new UniversalTuringMachine({
+  tape: '01',
+  transitions: 'qin 0 0 R q1\nqin 1 1 R qin\nq1 1 1 R halt-accept',
+});
 
+test('next-step-normal', t => {
   t.deepEqual(
     {
       tape: ['0', '1'],
@@ -23,7 +23,9 @@ test('next-step-accept', async t => {
     machine.nextState(),
     'Test next normal step.'
   );
+});
 
+test('next-state-last', t => {
   t.deepEqual(
     {
       tape: ['0', '1'],
@@ -38,13 +40,76 @@ test('next-step-accept', async t => {
       }
     },
     machine.nextState(),
-    'Test next terminal step.'
+    'Test nextStep reaches terminal state.'
   );
+});
 
-  t.false(
+test('next-state-terminal', t => {
+  t.is(
     machine.nextState(),
-    'Test next in terminal state.'
+    'halt-accept',
+    'Test return of nextStep in terminal state.'
   );
+});
 
-  t.deepEqual()
+test('previous-step-normal', t => {
+  t.deepEqual(
+    {
+      tape: ['0', '1'],
+      head: 1,
+      isTerminalState: false,
+    },
+    machine.previousState(),
+    'Test previousState normal.'
+  );
+});
+
+test('previous-state-first', async t => {
+  t.deepEqual(
+    {
+      tape: ['0', '1'],
+      head: 0,
+      isTerminalState: false,
+    },
+    machine.previousState(),
+    'Test previousState reaching initialStep.'
+  );
+});
+
+test('previous-step-initial', t => {
+  t.false(
+    machine.previousState(),
+    'Test previousState reaching initial state.'
+  );
+});
+
+const acceptMachine = new UniversalTuringMachine({
+  tape: '01',
+  transitions: 'qin 0 0 r q1\nq1 1 1 r halt-accept',
+});
+const rejectMachine = new UniversalTuringMachine({
+  tape: '01',
+  transitions: 'qin 0 0 r q1\nq1 1 1 r halt-reject',
+});
+const abortMachine = new UniversalTuringMachine({
+  tape: '01',
+  transitions: 'qin 0 0 r q1',
+});
+
+test('run-accept', t => {
+  t.is(acceptMachine.run(), 'halt-accept', 'Accepted computation.');
+});
+
+test('run-reject', t => {
+  t.is(rejectMachine.run(), 'halt-reject', 'Rejected computation.');
+});
+
+test('run-abort', t => {
+  t.is(abortMachine.run(), 'halt-abort', 'Aborted computation.');
+});
+
+test('re-run', t => {
+  t.is(acceptMachine.run(), 'halt-accept', 'Accepted computation.');
+  t.is(rejectMachine.run(), 'halt-reject', 'Rejected computation.');
+  t.is(abortMachine.run(), 'halt-abort', 'Aborted computation.');
 });
